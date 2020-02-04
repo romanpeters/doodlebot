@@ -11,7 +11,9 @@ import urllib.parse
 class Doodle:
     """Connect with WieBetaaltWat"""
     # no idea if tz_offset is always 13 hours, y.m.m.v.
+    # TODO fix
     tz_offset = 46800  # seconds
+    tz_offset = 43200
 
     def __init__(self, url=None, poll_id=None):
         assert url or poll_id
