@@ -62,7 +62,9 @@ class Doodle:
 
     def get_final(self) -> list:
         options = self.json_file.get('options')
+        result = []
         if options:
+            print(options)
             for o in options:
                 if o.get('final'):
                     dt_start = None
@@ -75,10 +77,11 @@ class Doodle:
                         pass
                     try:
                         dt_end = datetime.datetime.fromtimestamp(o.get('end')/1000 - self.tz_offset)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         pass
                     if dt_start or dt_end:
-                        return [(dt_start, dt_end)]
+                        result.append((dt_start, dt_end))
+            return result
 
     def is_open(self) -> bool:
         if self.json_file['state'] == 'OPEN':

@@ -78,10 +78,10 @@ def command(msg):
     chat_entry = session.query(db.Chat).filter_by(chat_id=chat_id).first()
     users = chat_entry.users
 
-    print(doodle_entry.url)
-    print(users)
-    for u in users:
-        print(u.first_name)
+    # print(doodle_entry.url)
+    # print(users)
+    # for u in users:
+    #     print(u.first_name)
 
     session.close()
 
@@ -97,7 +97,7 @@ def command(msg):
 
     # Check if poll is open
     if not poll.is_open():
-        final_dates = [d[0].strftime('%A %d %B %H:%M') for d in poll.get_final()]
+        final_dates = [d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()]
         bot.sendMessage(chat_id, "\n".join([title] + final_dates), parse_mode="Markdown")
         return
 
