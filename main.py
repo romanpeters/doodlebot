@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import datetime
 import threading
@@ -6,9 +7,10 @@ import subprocess
 from pprint import pprint
 import telepot
 from redacted import API_KEY
-import doodle
 import database as db
 
+sys.path.append("python-doodle")
+import doodle
 
 def chat(msg: dict):
     """on chat message"""
@@ -65,6 +67,55 @@ def user_to_db(user_id, chat_id, username=None, first_name=None, last_name=None)
     session.merge(entry)
     session.commit()
 
+
+def levenshtein_distance(s1, s2):
+    if len(s1) > len(s2):
+        s1, s2 = s2, s1
+
+    distances = range(len(s1) + 1)
+    for i2, c2 in enumerate(s2):
+        distances_ = [i2+1]
+        for i1, c1 in enumerate(s1):
+            if c1 == c2:
+                distances_.append(distances[i1])
+            else:
+                distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+        distances = distances_
+    return distances[-1]
+
+
+def identify(alias: str, users) -> int:
+    """Get user id by alias"""
+    alias = ''.join([c for c in alias.lower() if c.isalpha()])  # make lowercase and filter numbers
+    names = []
+
+
+
+    lowest = 100
+    result = None
+    for entry in aliases:
+        ld = levenshteinDistance(entry.alias, alias)
+        if ld == 0:
+            return entry.id
+
+        if ld < lowest:
+            lowest = ld
+            result = entry.id
+    return result
+
+
+# def get_missing(chat_entry, doodle_entry):
+#     users = {u.user_id: [u.username, u.first_name, u.last_name] for u in chat_entry.users}
+#
+#
+#     missing = [f"@{u.username}" for u in utils.get_missing(participants)]
+#     poll_string = f"[{poll.get_title()}]({url}) ({len(participants)}/{len(whitelisted)})"
+#     if poll.is_open():
+#         additional_string = '\n'.join([u'\U00002611' + f" {p}" for p in participants] + [u'\U000025FB' + f" {m}" for m in missing])
+#     else:
+#         additional_string = f"Final date: {poll.get_final()[0].strftime('%A %d %B %H:%M')}"
+#     bot.sendMessage(message.chat_id, '\n'.join([poll_string, additional_string]), parse_mode="Markdown",
+#                     disable_web_page_preview=True)
 
 def command(msg):
     """Doodle that Doodle"""

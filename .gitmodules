@@ -1,0 +1,3 @@
+[submodule "python-doodle"]
+	path = python-doodle
+	url = git@github.com:romanpeters/python-doodle.git
