@@ -9,8 +9,9 @@ import telepot
 from redacted import API_KEY
 import database as db
 
-sys.path.append("python-doodle")
+sys.path.append("python-doodle") # python-doodle is located in a git submodule
 import doodle
+
 
 def chat(msg: dict):
     """on chat message"""
@@ -152,7 +153,7 @@ def command(msg):
         bot.sendMessage(chat_id, "\n".join([title] + final_dates), parse_mode="Markdown")
         return
 
-    bot.sendMessage(chat_id, f"{title}\n{participants}", parse_mode="Markdown")
+    bot.sendMessage(chat_id, f"{title}\n{doodle_entry.url}\n{participants}", parse_mode="Markdown")
 
 
 if __name__ == '__main__':
