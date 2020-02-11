@@ -1,3 +1,5 @@
 redacted.py
 sqlite.db
 venv/
+.idea/
+__pycache__/
