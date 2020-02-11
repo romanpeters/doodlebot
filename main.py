@@ -45,7 +45,6 @@ def doodle_to_db(url: str, chat_id: int):
     session = db.Session()
     entry = session.query(db.Doodle).filter_by(chat_id=chat_id).first()
     if entry:
-        print(entry)
         if entry.url == url:
             session.close()
             return
@@ -79,7 +78,6 @@ def command(msg):
     message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
 
     session.close()
-    print(message)
 
     bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True)
 
@@ -101,7 +99,7 @@ class DoodleMessage(object):
 
     def get_missing(self) -> list:
         """lists chat_members who did not participate in the doodle"""
-        chat_members = self.chat_members
+        chat_members = self.chat_members.copy()
         participating = self.poll.get_participants()
         for doodler in participating:
             chat_id = self.identify(doodler)
