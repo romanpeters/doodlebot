@@ -90,7 +90,7 @@ class DoodleMessage(object):
         self.title: str = f"*{poll.get_title()}*"
         self.participants: str = "\n\U00002611".join([''] + poll.get_participants()).strip()
         self.final_dates: str = str([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()])
-        self.missing: str = "\n\U000025FB".join([''] + self.get_missing()).strip()
+        self.missing: str = "\n\U00002610".join([''] + self.get_missing()).strip()
 
     def get_message(self):
         if not self.poll.is_open():
