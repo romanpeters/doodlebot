@@ -89,7 +89,7 @@ class DoodleMessage(object):
         self.chat_members = {u.user_id: u for u in chat_entry.users}
         self.title: str = f"*{poll.get_title()}*"
         self.participants: str = "\n\U00002611".join([''] + poll.get_participants()).strip()
-        self.final_dates: str = str([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()])
+        self.final_dates: str = '\n'.join([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()])
         self.missing: str = "\n\U00002610".join([''] + self.get_missing()).strip()
 
     def get_message(self):
