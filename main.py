@@ -121,8 +121,11 @@ class DoodleMessage(object):
         """Returns the chat_id of a user"""
         score = float("inf")
         most_likely = None
-        for chat_id, user in self.chat_members.items():
-            user_names = [user.username, user.first_name, user.last_name, f"{user.first_name} {user.last_name}"]
+        for chat_id, user in self.chat_members.items():                    # Check name against different aliases
+            user_names = [user.username, user.first_name, user.last_name,  # john, doe, @johndoe
+                          user.first_name + user.last_name,                # johndoe
+                          user.first_name[0] + user.last_name,             # jdoe
+                          user.first_name + user.last_name[0]]             # johnd
             for user_name in user_names:
                 edit_distance = self.levenshtein(name, user_name)
                 if edit_distance == 0:  # perfect match
