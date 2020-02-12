@@ -6,6 +6,12 @@ You can view the current poll by sending `/doodle`. If the poll is still open, t
 if the poll has been decided, it will show the final date that has been decided.
 
 #### Future features
-- Automatically mention users who have yet to fill in the poll, so they get a notification.
-- Multiple saved polls maybe.
-- Show current preferred date of open poll. 
+- [x] Automatically mention users who have yet to fill in the poll, so they get a notification.
+- [ ] Show current preferred date of open poll. 
+- [ ] Show best date yet if 3 or less options left.
+- [ ] Reminder 24 hour before picked event.
+- [ ] Reminder to fill in the doodle, 3 days and 1 day before first date option.
+- [ ] Warning doodle has not been closed at first date option.
+- [ ] /createdoodle 
+- [ ] Multiple saved polls maybe.
+
