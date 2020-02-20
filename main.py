@@ -3,6 +3,7 @@ import os
 import time
 from pprint import pprint
 import telepot
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from redacted import BOT_TOKEN
 import database as db
 
@@ -83,13 +84,16 @@ def command(msg):
 
     chat_entry = session.query(db.Chat).filter_by(chat_id=chat_id).first()
     poll = doodle.Doodle(doodle_entry.url)
+    message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
     if poll.is_open():
-        message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
+        reply_markup = None
     else:
         add2cal = AddToCalendar(poll)
         ical_url = add2cal.get_url()
-        message = DoodleMessage(poll=poll, chat_entry=chat_entry, ical_url=ical_url).get_message()
-    bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True)
+        reply_markup = InlineKeyboardMarkup(inline_keyboard=[
+            [dict(text='Add to calendar', url=ical_url)]
+        ])
+    bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True, reply_markup=reply_markup)
     session.close()
 
 class AddToCalendar(object):
