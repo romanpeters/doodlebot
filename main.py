@@ -49,17 +49,16 @@ def get_urls(msg: dict) -> list:
     return urls
 
 
-def doodle_to_db(url: str, chat_id: int):
+def doodle_to_db(url: str, chat_id: int, ical_url: str = None):
     """Add Doodle to db"""
     session = db.Session()
     entry = session.query(db.Doodle).filter_by(chat_id=chat_id).first()
     if entry:
-        if entry.url == url:
-            session.close()
-            return
         entry.url = url
+        if ical_url:
+            entry.ical_url = ical_url
     else:
-        entry = db.Doodle(chat_id=chat_id, url=url)
+        entry = db.Doodle(chat_id=chat_id, url=url, ical_url=ical_url)
     session.add(entry)
     session.commit()
 
@@ -71,6 +70,15 @@ def user_to_db(user_id, chat_id, username=None, first_name=None, last_name=None)
     entry.chats.append(db.Chat(chat_id=chat_id))
     session.merge(entry)
     session.commit()
+
+
+def get_ical_url_from_db(chat_id: int) -> str:
+    session = db.Session()
+    doodle_entry = session.query(db.Doodle).filter_by(chat_id=chat_id).first()
+    session.close()
+    if doodle_entry.ical_url:
+        return doodle_entry.ical_url
+    return ""
 
 
 def command(msg):
@@ -88,8 +96,12 @@ def command(msg):
     if poll.is_open():
         reply_markup = None
     else:
-        add2cal = AddToCalendar(poll)
-        ical_url = add2cal.get_url()
+        ical_url = get_ical_url_from_db(chat_id=chat_id)
+        if not ical_url:
+            add2cal = AddToCalendar(poll)
+            ical_url = add2cal.get_url()
+            doodle_to_db(url=doodle_entry.url, chat_id=doodle_entry.chat_id, ical_url=ical_url)
+
         reply_markup = InlineKeyboardMarkup(inline_keyboard=[
             [dict(text='Add to calendar', url=ical_url)]
         ])
@@ -105,11 +117,13 @@ class AddToCalendar(object):
         self.title = poll.get_title()
         self.location = poll.get_location()
         self.dropbox_folder = "/doodlebot/"
-        self.filename = ".event.ics"
+        self.filename = f".{int(time.time())}.ics"
         self.dropbox_path = self.dropbox_folder+self.filename[1:]
         self.dl_url = ""
         self.direct_dl_url = ""
+
         self.upload()
+
 
     def create_ical(self):
         cal = icalendar.Calendar()
@@ -141,6 +155,8 @@ class AddToCalendar(object):
             self.dl_url = 'https://' + url_and_more.split("',")[0]
         self.direct_dl_url = self.dl_url.replace('?dl=0', '?dl=1')
         return self.direct_dl_url
+
+
 
 class DoodleMessage(object):
     def __init__(self, poll, chat_entry, ical_url=None):
