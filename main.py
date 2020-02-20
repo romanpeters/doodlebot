@@ -93,22 +93,22 @@ def command(msg):
     chat_entry = session.query(db.Chat).filter_by(chat_id=chat_id).first()
     poll = doodle.Doodle(doodle_entry.url)
     message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
-    if poll.is_open():
-        reply_markup = None
-    else:
-        ical_url = get_ical_url_from_db(chat_id=chat_id)
-        if not ical_url:
-            add2cal = AddToCalendar(poll)
-            ical_url = add2cal.get_url()
-            doodle_to_db(url=doodle_entry.url, chat_id=doodle_entry.chat_id, ical_url=ical_url)
 
-        reply_markup = InlineKeyboardMarkup(inline_keyboard=[
-            [dict(text='Add to calendar', url=ical_url)]
-        ])
+    reply_markup = None
+    if not poll.is_open():
+        if show_calendar_link:
+            ical_url = get_ical_url_from_db(chat_id=chat_id)
+            if not ical_url:
+                ical_url = DropBoxUploader(poll).get_url()
+                doodle_to_db(url=doodle_entry.url, chat_id=doodle_entry.chat_id, ical_url=ical_url)
+
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=[
+                [dict(text='Add to calendar', url=ical_url)]
+            ])
     bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True, reply_markup=reply_markup)
     session.close()
 
-class AddToCalendar(object):
+class DropBoxUploader(object):
     dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
     def __init__(self, poll):
