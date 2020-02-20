@@ -1,12 +1,20 @@
 import sys
+import os
 import time
 from pprint import pprint
 import telepot
-from redacted import API_KEY
+from redacted import BOT_TOKEN
 import database as db
 
 sys.path.append("python-doodle")  # python-doodle is located in a git submodule
 import doodle
+
+show_calendar_link = True
+if show_calendar_link:
+    import dropbox
+    from dropbox.exceptions import ApiError
+    import icalendar
+    from redacted import DROPBOX_TOKEN
 
 
 def chat(msg: dict):
@@ -75,26 +83,80 @@ def command(msg):
 
     chat_entry = session.query(db.Chat).filter_by(chat_id=chat_id).first()
     poll = doodle.Doodle(doodle_entry.url)
-    message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
-
+    if poll.is_open():
+        message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
+    else:
+        add2cal = AddToCalendar(poll)
+        ical_url = add2cal.get_url()
+        message = DoodleMessage(poll=poll, chat_entry=chat_entry, ical_url=ical_url).get_message()
+    bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True)
     session.close()
 
-    bot.sendMessage(chat_id, message, parse_mode="Markdown", disable_web_page_preview=True)
+class AddToCalendar(object):
+    dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
+    def __init__(self, poll):
+        assert not poll.is_open()
+        self.event_times = poll.get_final()
+        self.title = poll.get_title()
+        self.location = poll.get_location()
+        self.dropbox_folder = "/doodlebot/"
+        self.filename = ".event.ics"
+        self.dropbox_path = self.dropbox_folder+self.filename[1:]
+        self.dl_url = ""
+        self.direct_dl_url = ""
+        self.upload()
+
+    def create_ical(self):
+        cal = icalendar.Calendar()
+        for start_end in self.event_times:
+            event = icalendar.Event()
+            event.add('summary', self.title)
+            event.add('dtstart', start_end[0])
+            event.add('dtend', start_end[1])
+            event.add('location', self.location)
+            cal.add_component(event)
+        return cal.to_ical()
+
+    def upload(self):
+        with open(self.filename, "wb+") as f:
+            f.write(self.create_ical())
+
+        with open(self.filename, 'rb') as f:
+            self.dbx.files_upload(f.read(), path=self.dropbox_path)
+
+        # remove original file
+        os.remove(self.filename)
+
+    def get_url(self):
+        try:
+            self.dl_url = self.dbx.sharing_create_shared_link_with_settings(self.dropbox_path).url
+        except ApiError as e:
+            error_string = str(e)
+            url_and_more = error_string.split('https://')[1]
+            self.dl_url = 'https://' + url_and_more.split("',")[0]
+        self.direct_dl_url = self.dl_url.replace('?dl=0', '?dl=1')
+        return self.direct_dl_url
 
 class DoodleMessage(object):
-    def __init__(self, poll, chat_entry):
+    def __init__(self, poll, chat_entry, ical_url=None):
         self.poll: doodle.Doodle = poll
         self.chat_entry: db.Chat = chat_entry
+        self.ical_url = ical_url
         self.chat_members = {u.user_id: u for u in chat_entry.users}
         self.title: str = f"*{poll.get_title()}*"
         self.participants: str = "\n\U00002611".join([''] + poll.get_participants()).strip()
         self.final_dates: str = '\n'.join([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()])
         self.missing: str = "\n\U00002610".join([''] + self.get_missing()).strip()
 
+
     def get_message(self):
         if not self.poll.is_open():
-            return "\n".join([self.title, self.final_dates])
+            lines = [self.title]
+            if self.ical_url:
+                lines.append(f"[add to calendar]({self.ical_url})")
+            lines.append(self.final_dates)
+            return "\n".join(lines)
         return f"{self.title}\n{self.poll.url}\n{self.participants}\n{self.missing}"
 
     def get_missing(self) -> list:
@@ -152,15 +214,8 @@ class DoodleMessage(object):
         return distances[-1]
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
-    bot = telepot.Bot(API_KEY)
+    bot = telepot.Bot(BOT_TOKEN)
     bot.message_loop({'chat': chat})
     print('Listening...')
     while 1:
