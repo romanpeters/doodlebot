@@ -7,6 +7,7 @@ if the poll has been decided, it will show the final date that has been decided.
 
 #### Future features
 - [x] Automatically mention users who have yet to fill in the poll, so they get a notification.
+- [x] Add-to-calendar-button.
 - [ ] Show current preferred date of open poll. 
 - [ ] Show best date yet if 3 or less options left.
 - [ ] Reminder 24 hour before picked event.
