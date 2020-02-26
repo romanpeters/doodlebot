@@ -95,7 +95,7 @@ def command(msg):
     message = DoodleMessage(poll=poll, chat_entry=chat_entry).get_message()
 
     reply_markup = None
-    if not poll.is_open():
+    if not poll.is_open:
         if show_calendar_link:
             ical_url = get_ical_url_from_db(chat_id=chat_id)
             if not ical_url:
@@ -112,10 +112,10 @@ class DropBoxUploader(object):
     dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
     def __init__(self, poll):
-        assert not poll.is_open()
-        self.event_times = poll.get_final()
-        self.title = poll.get_title()
-        self.location = poll.get_location()
+        assert not poll.is_open
+        self.event_times = poll.final
+        self.title = poll.title
+        self.location = poll.location
         self.dropbox_folder = "/doodlebot/"
         self.filename = f".{int(time.time())}.ics"
         self.dropbox_path = self.dropbox_folder+self.filename[1:]
@@ -164,14 +164,14 @@ class DoodleMessage(object):
         self.chat_entry: db.Chat = chat_entry
         self.ical_url = ical_url
         self.chat_members = {u.user_id: u for u in chat_entry.users}
-        self.title: str = f"*{poll.get_title()}*"
-        self.participants: str = "\n\U00002611".join([''] + poll.get_participants()).strip()
-        self.final_dates: str = '\n'.join([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.get_final()])
+        self.title: str = f"*{poll.title}*"
+        self.participants: str = "\n\U00002611".join([''] + poll.participants).strip()
+        self.final_dates: str = '\n'.join([d[0].strftime('%A %d %B %H:%M').replace("00:00", "") for d in poll.final])
         self.missing: str = "\n\U00002610".join([''] + self.get_missing()).strip()
 
 
     def get_message(self):
-        if not self.poll.is_open():
+        if not self.poll.is_open:
             lines = [self.title]
             if self.ical_url:
                 lines.append(f"[add to calendar]({self.ical_url})")
@@ -182,7 +182,7 @@ class DoodleMessage(object):
     def get_missing(self) -> list:
         """lists chat_members who did not participate in the doodle"""
         chat_members = self.chat_members.copy()
-        participating = self.poll.get_participants()
+        participating = self.poll.participants
 
         print("chat_members:")
         for chat_id, u in chat_members.items():
