@@ -18,9 +18,10 @@ class Doodle(SQLAlchemyBase):
     doodle_id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     url = sa.Column(sa.String(32))
     chat_id = sa.Column(sa.Integer)
+    ical_url = sa.Column(sa.String)
 
     def __repr__(self):
-        return f"<Doodle(doodle_id='{self.doodle_id}', url='{self.url}', chat_id='{self.chat_id}')>"
+        return f"<Doodle(doodle_id='{self.doodle_id}', url='{self.url}', chat_id='{self.chat_id}', calendar_url='{self.ical_url}')>"
 
 
 
