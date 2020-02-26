@@ -196,7 +196,7 @@ class DoodleMessage(object):
                 pass
         names = []
         for user in chat_members.values():
-            mention_name = f"@{user.username}" if user.username else f"[{user.first_name}](tg://user?id={user.chat_id})"
+            mention_name = f"@{user.username}" if user.username else f"[{user.first_name}](tg://user?id={user.user_id})"
             names.append(mention_name)
         return names
 
