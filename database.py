@@ -15,7 +15,7 @@ chat_members = sa.Table('chat_members', SQLAlchemyBase.metadata,
 
 class Doodle(SQLAlchemyBase):
     __tablename__ = 'doodles'
-    doodle_id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    doodle_id = sa.Column(sa.Integer, primary_key=True)
     url = sa.Column(sa.String(32))
     chat_id = sa.Column(sa.Integer)
     ical_url = sa.Column(sa.String)
